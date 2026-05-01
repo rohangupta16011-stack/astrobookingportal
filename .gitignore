@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+.env
+.env.local
+.vercel
+*.log
+.DS_Store
+
+# Local artifacts not part of the app
+Screenshot*.png
+/payment-qr.png
+Workflow.drawio
