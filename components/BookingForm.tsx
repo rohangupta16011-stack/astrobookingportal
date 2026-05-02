@@ -765,11 +765,11 @@ function SuccessScreen({
           </li>
           <li className="flex gap-3">
             <span className="text-sunDeep flex-shrink-0 font-semibold">2.</span>
-            <span>A confirmation email with your booking summary has been sent to {booking.email}.</span>
+            <span>A confirmation email with your Google Meet link and booking summary has been sent to {booking.email}.</span>
           </li>
           <li className="flex gap-3">
             <span className="text-sunDeep flex-shrink-0 font-semibold">3.</span>
-            <span>You'll receive a WhatsApp message with the Google Meet link before your session.</span>
+            <span>A calendar invite has been added to your inbox — accept it to keep the session on your calendar.</span>
           </li>
         </ol>
       </div>
