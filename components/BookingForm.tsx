@@ -220,7 +220,6 @@ function StepAbout({
         <input
           className="input"
           type="text"
-          placeholder="As per your birth certificate"
           value={form.fullName}
           onChange={(e) => set("fullName", e.target.value)}
         />
