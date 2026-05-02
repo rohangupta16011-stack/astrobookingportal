@@ -18,7 +18,7 @@ type FormState = {
   timeOfBirth: string;
   placeOfBirth: string;
   gender: "Male" | "Female" | "";
-  consultationType: "Astrology" | "Numerology" | "Both" | "Follow-up Consultation" | "";
+  consultationType: "Astrology" | "Numerology" | "Both" | "";
   consultationDuration: "30 minutes" | "60 minutes" | "";
   paymentScreenshot: File | null;
   consultationDate: string;
@@ -349,7 +349,6 @@ function StepSession({
             { value: "Astrology", label: "Astrology", sub: "Birth chart, planetary insights" },
             { value: "Numerology", label: "Numerology", sub: "Numbers shaping your path" },
             { value: "Both", label: "Both", sub: "Combined deep reading" },
-            { value: "Follow-up Consultation", label: "Follow-up", sub: "Continuing previous session" },
           ]}
         />
       </Field>
