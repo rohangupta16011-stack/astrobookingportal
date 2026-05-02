@@ -253,7 +253,7 @@ export function Services() {
           <div>
             <p className="text-sm tracking-widest uppercase text-inkSoft mb-1">Pricing</p>
             <p className="font-serif text-2xl text-ink">
-              30 min · <span className="text-sun-grad">₹ 2</span>
+              30 min · <span className="text-sun-grad">₹ 1,600</span>
               <span className="text-muted mx-3">/</span>
               60 min · <span className="text-sun-grad">₹ 3,200</span>
             </p>
