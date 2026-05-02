@@ -544,17 +544,28 @@ export function Footer() {
 }
 
 export function WhatsAppFAB() {
+  const message = "Hi Anikita, I'd like to know more about a consultation.";
+  const href = `https://wa.me/${PHONE_DIGITS}?text=${encodeURIComponent(message)}`;
   return (
     <a
-      href={`https://wa.me/${PHONE_DIGITS}?text=${encodeURIComponent("Hi Anikita, I'd like to book a consultation.")}`}
+      href={href}
       target="_blank"
       rel="noreferrer"
       aria-label="Chat on WhatsApp"
-      className="fixed bottom-5 right-5 z-50 w-14 h-14 rounded-full bg-[#25D366] shadow-glowStrong flex items-center justify-center text-white hover:scale-110 transition-transform"
+      className="group fixed bottom-6 right-6 z-50 flex items-center"
     >
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.9L4 20l4.22-1.11a7.93 7.93 0 0 0 3.83.97h.01c4.37 0 7.93-3.55 7.94-7.92a7.88 7.88 0 0 0-2.4-5.62zm-5.55 12.2h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.5.66.67-2.44-.16-.25a6.58 6.58 0 0 1-1.01-3.5c0-3.64 2.96-6.6 6.61-6.6 1.76 0 3.42.69 4.66 1.94a6.55 6.55 0 0 1 1.93 4.67c0 3.64-2.96 6.59-6.6 6.59zm3.62-4.94c-.2-.1-1.17-.58-1.36-.64-.18-.07-.31-.1-.45.1-.13.2-.51.64-.63.78-.11.13-.23.15-.43.05-.2-.1-.84-.31-1.6-.99-.59-.53-.99-1.18-1.11-1.38-.11-.2-.01-.31.09-.41.09-.09.2-.23.3-.35.1-.12.13-.2.2-.33.07-.13.03-.25-.02-.35-.05-.1-.45-1.08-.62-1.48-.16-.39-.33-.34-.45-.34l-.38-.01c-.13 0-.35.05-.53.25-.18.2-.7.69-.7 1.67 0 .99.72 1.94.82 2.07.1.13 1.42 2.16 3.43 3.03.48.21.85.33 1.14.42.48.15.91.13 1.26.08.38-.06 1.17-.48 1.34-.94.16-.46.16-.86.12-.94-.05-.08-.18-.13-.38-.23z" />
-      </svg>
+      <span className="hidden sm:flex items-center gap-2 mr-3 px-4 py-2 rounded-full bg-surface border border-border shadow-card text-sm text-ink opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 pointer-events-none">
+        <span className="font-medium">Chat with us</span>
+        <span className="text-muted">on WhatsApp</span>
+      </span>
+      <span className="relative flex">
+        <span className="absolute inset-0 rounded-full bg-[#25D366] opacity-60 animate-wa-ping" />
+        <span className="relative w-16 h-16 rounded-full bg-[#25D366] shadow-glowStrong flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.9L4 20l4.22-1.11a7.93 7.93 0 0 0 3.83.97h.01c4.37 0 7.93-3.55 7.94-7.92a7.88 7.88 0 0 0-2.4-5.62zm-5.55 12.2h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.5.66.67-2.44-.16-.25a6.58 6.58 0 0 1-1.01-3.5c0-3.64 2.96-6.6 6.61-6.6 1.76 0 3.42.69 4.66 1.94a6.55 6.55 0 0 1 1.93 4.67c0 3.64-2.96 6.59-6.6 6.59zm3.62-4.94c-.2-.1-1.17-.58-1.36-.64-.18-.07-.31-.1-.45.1-.13.2-.51.64-.63.78-.11.13-.23.15-.43.05-.2-.1-.84-.31-1.6-.99-.59-.53-.99-1.18-1.11-1.38-.11-.2-.01-.31.09-.41.09-.09.2-.23.3-.35.1-.12.13-.2.2-.33.07-.13.03-.25-.02-.35-.05-.1-.45-1.08-.62-1.48-.16-.39-.33-.34-.45-.34l-.38-.01c-.13 0-.35.05-.53.25-.18.2-.7.69-.7 1.67 0 .99.72 1.94.82 2.07.1.13 1.42 2.16 3.43 3.03.48.21.85.33 1.14.42.48.15.91.13 1.26.08.38-.06 1.17-.48 1.34-.94.16-.46.16-.86.12-.94-.05-.08-.18-.13-.38-.23z" />
+          </svg>
+        </span>
+      </span>
     </a>
   );
 }
