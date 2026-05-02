@@ -19,8 +19,8 @@
 const SPREADSHEET_ID = "1SL1Oi_4rTieE6DOgS6XqJ5UERZ55wc5iJDonTfHl6_4";
 const DRIVE_FOLDER_ID = "1chpbWw5X9bCG5PuTOzpWuOepU1a-f2a9";
 const SHEET_NAME = "Astro Bookings";
-const OWNER_EMAIL = "rohan.gupta190@gmail.com";
-const BUSINESS_NAME = "Astro Consultation";
+const OWNER_EMAIL = "astroanikita@gmail.com";
+const BUSINESS_NAME = "Astro Anikita";
 
 function doPost(e) {
   try {
