@@ -525,7 +525,7 @@ function SlotPicker({
   const slots = useMemo(() => {
     const out: string[] = [];
     const startMins = 12 * 60;
-    const endMins = 19 * 60 - durationMins;
+    const endMins = 19 * 60;
     for (let m = startMins; m <= endMins; m += durationMins) {
       const h = Math.floor(m / 60);
       const mm = m % 60;
