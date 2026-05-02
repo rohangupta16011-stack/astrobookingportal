@@ -4,7 +4,7 @@ import Razorpay from "razorpay";
 export const runtime = "nodejs";
 
 const PRICES: Record<string, number> = {
-  "30 minutes": 1600,
+  "30 minutes": 2,
   "60 minutes": 3200,
 };
 
