@@ -548,8 +548,29 @@ export function WhatsAppFAB() {
   const waHref = `https://wa.me/${PHONE_DIGITS}?text=${encodeURIComponent(waMessage)}`;
   const callHref = `tel:+${PHONE_DIGITS}`;
 
+  const emailHref = `mailto:${EMAIL}`;
+
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+      <a
+        href={emailHref}
+        aria-label={`Email ${EMAIL}`}
+        className="group flex items-center"
+      >
+        <span className="hidden sm:flex items-center gap-2 mr-3 px-4 py-2 rounded-full bg-surface border border-border shadow-card text-sm text-ink opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 pointer-events-none">
+          <span className="font-medium">Email us</span>
+          <span className="text-muted">{EMAIL}</span>
+        </span>
+        <span className="relative flex">
+          <span className="relative w-14 h-14 rounded-full bg-ink shadow-glowStrong flex items-center justify-center text-cream group-hover:scale-110 transition-transform">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+          </span>
+        </span>
+      </a>
+
       <a
         href={callHref}
         aria-label={`Call ${PHONE_DISPLAY}`}
