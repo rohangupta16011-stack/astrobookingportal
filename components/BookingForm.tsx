@@ -12,6 +12,7 @@ import {
 
 type FormState = {
   fullName: string;
+  countryCode: string;
   mobile: string;
   email: string;
   dob: string;
@@ -27,6 +28,7 @@ type FormState = {
 
 const initial: FormState = {
   fullName: "",
+  countryCode: "+91",
   mobile: "",
   email: "",
   dob: "",
@@ -76,12 +78,13 @@ export default function BookingForm() {
   );
 
   const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-  const validateMobile = (m: string) => /^[+\d\s-]{7,}$/.test(m);
+  const validateMobile = (m: string) => /^\d{7,15}$/.test(m.replace(/\D/g, ""));
 
   const stepValid = (s: number): boolean => {
     if (s === 0) {
       return (
         form.fullName.trim().length > 1 &&
+        !!form.countryCode &&
         validateMobile(form.mobile) &&
         validateEmail(form.email)
       );
@@ -142,7 +145,7 @@ export default function BookingForm() {
         return `${String(h12).padStart(2, "0")}:${mm} ${ampm}`;
       };
       fd.append("fullName", form.fullName);
-      fd.append("mobile", form.mobile);
+      fd.append("mobile", `${form.countryCode} ${form.mobile.replace(/\D/g, "")}`);
       fd.append("email", form.email);
       fd.append("dob", form.dob);
       fd.append("timeOfBirth", formatTime(form.timeOfBirth));
@@ -223,13 +226,12 @@ function StepAbout({
         />
       </Field>
 
-      <Field label="Mobile (WhatsApp)" required hint="With country code">
-        <input
-          className="input"
-          type="tel"
-          placeholder="+91 98765 43210"
-          value={form.mobile}
-          onChange={(e) => set("mobile", e.target.value)}
+      <Field label="Mobile (WhatsApp)" required>
+        <PhoneInput
+          countryCode={form.countryCode}
+          mobile={form.mobile}
+          onCountryCode={(v) => set("countryCode", v)}
+          onMobile={(v) => set("mobile", v)}
         />
       </Field>
 
@@ -405,6 +407,75 @@ function StepPayment({
       <p className="text-xs text-muted text-center">
         We'll confirm your slot on WhatsApp once payment is verified.
       </p>
+    </div>
+  );
+}
+
+const COUNTRY_CODES: { code: string; label: string; flag: string }[] = [
+  { code: "+91", label: "India", flag: "🇮🇳" },
+  { code: "+1", label: "USA / Canada", flag: "🇺🇸" },
+  { code: "+44", label: "United Kingdom", flag: "🇬🇧" },
+  { code: "+971", label: "UAE", flag: "🇦🇪" },
+  { code: "+65", label: "Singapore", flag: "🇸🇬" },
+  { code: "+61", label: "Australia", flag: "🇦🇺" },
+  { code: "+60", label: "Malaysia", flag: "🇲🇾" },
+  { code: "+64", label: "New Zealand", flag: "🇳🇿" },
+  { code: "+49", label: "Germany", flag: "🇩🇪" },
+  { code: "+33", label: "France", flag: "🇫🇷" },
+  { code: "+966", label: "Saudi Arabia", flag: "🇸🇦" },
+  { code: "+974", label: "Qatar", flag: "🇶🇦" },
+  { code: "+968", label: "Oman", flag: "🇴🇲" },
+  { code: "+973", label: "Bahrain", flag: "🇧🇭" },
+  { code: "+965", label: "Kuwait", flag: "🇰🇼" },
+  { code: "+92", label: "Pakistan", flag: "🇵🇰" },
+  { code: "+880", label: "Bangladesh", flag: "🇧🇩" },
+  { code: "+977", label: "Nepal", flag: "🇳🇵" },
+  { code: "+94", label: "Sri Lanka", flag: "🇱🇰" },
+  { code: "+27", label: "South Africa", flag: "🇿🇦" },
+  { code: "+81", label: "Japan", flag: "🇯🇵" },
+];
+
+function PhoneInput({
+  countryCode,
+  mobile,
+  onCountryCode,
+  onMobile,
+}: {
+  countryCode: string;
+  mobile: string;
+  onCountryCode: (v: string) => void;
+  onMobile: (v: string) => void;
+}) {
+  return (
+    <div className="flex gap-2">
+      <div className="relative shrink-0" style={{ width: "118px" }}>
+        <select
+          aria-label="Country code"
+          value={countryCode}
+          onChange={(e) => onCountryCode(e.target.value)}
+          className="input appearance-none cursor-pointer pr-8 font-medium"
+        >
+          {COUNTRY_CODES.map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.flag} {c.code}
+            </option>
+          ))}
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-muted">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
+      </div>
+      <input
+        className="input flex-1"
+        type="tel"
+        inputMode="numeric"
+        autoComplete="tel-national"
+        placeholder="98765 43210"
+        value={mobile}
+        onChange={(e) => onMobile(e.target.value.replace(/[^\d\s-]/g, ""))}
+      />
     </div>
   );
 }
