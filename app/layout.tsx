@@ -23,9 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${serif.variable} ${sans.variable}`}>
       <body className="font-sans antialiased relative">
-        <div className="starfield" />
-        <div className="orb" style={{ width: 500, height: 500, background: "#5B2A99", top: -120, left: -120 }} />
-        <div className="orb" style={{ width: 420, height: 420, background: "#D4AF37", bottom: -100, right: -120 }} />
+        <div className="sunfield" />
+        <div className="orb animate-pulseSoft" style={{ width: 480, height: 480, background: "#FFE89B", top: -160, left: -120 }} />
+        <div className="orb animate-pulseSoft" style={{ width: 420, height: 420, background: "#F5B700", bottom: -120, right: -120 }} />
         {children}
       </body>
     </html>

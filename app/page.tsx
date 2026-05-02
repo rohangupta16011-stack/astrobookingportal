@@ -172,15 +172,15 @@ export default function Page() {
   return (
     <main className="min-h-screen px-4 py-8 sm:py-14 max-w-2xl mx-auto">
       <header className="text-center mb-10">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-cosmos/40 mb-5">
-          <span className="text-gold text-sm">✦</span>
-          <span className="text-xs tracking-[0.2em] uppercase text-lavender">Astro Anikita</span>
-          <span className="text-gold text-sm">✦</span>
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-sun/40 bg-cream/60 backdrop-blur-sm mb-5 shadow-soft">
+          <span className="text-sunDeep text-sm">✦</span>
+          <span className="text-xs tracking-[0.2em] uppercase text-inkSoft font-medium">Astro Anikita</span>
+          <span className="text-sunDeep text-sm">✦</span>
         </div>
-        <h1 className="font-serif text-4xl sm:text-5xl text-cream leading-tight">
-          Book your <span className="text-gold-grad italic">consultation</span>
+        <h1 className="font-serif text-4xl sm:text-5xl text-ink leading-tight">
+          Book your <span className="text-sun-grad italic">consultation</span>
         </h1>
-        <p className="mt-3 text-lavender/80 text-sm sm:text-base max-w-md mx-auto">
+        <p className="mt-3 text-inkSoft text-sm sm:text-base max-w-md mx-auto">
           Share a few details and reserve your personal session. The cosmos has answers — let's find them together.
         </p>
       </header>
@@ -197,7 +197,7 @@ export default function Page() {
       </GlassCard>
 
       {error && (
-        <div className="glass border-danger/40 px-4 py-3 mb-3 text-sm text-danger">
+        <div className="card border-danger/40 px-4 py-3 mb-3 text-sm text-danger">
           {error}
         </div>
       )}
@@ -226,7 +226,7 @@ function StepAbout({
 }) {
   return (
     <div className="step-enter space-y-5">
-      <h2 className="font-serif text-2xl text-cream mb-1">About you</h2>
+      <h2 className="font-serif text-2xl text-ink mb-1">About you</h2>
       <p className="text-sm text-muted mb-5">We need this to personalize your reading and reach you.</p>
 
       <Field label="Full name" required>
@@ -271,7 +271,7 @@ function StepBirth({
 }) {
   return (
     <div className="step-enter space-y-5">
-      <h2 className="font-serif text-2xl text-cream mb-1">Birth details</h2>
+      <h2 className="font-serif text-2xl text-ink mb-1">Birth details</h2>
       <p className="text-sm text-muted mb-5">
         For an accurate chart we need your exact birth time and place.
       </p>
@@ -333,7 +333,7 @@ function StepSession({
 }) {
   return (
     <div className="step-enter space-y-6">
-      <h2 className="font-serif text-2xl text-cream mb-1">Your session</h2>
+      <h2 className="font-serif text-2xl text-ink mb-1">Your session</h2>
       <p className="text-sm text-muted">Pick what brings you here today.</p>
 
       <Field label="Consultation type" required>
@@ -363,9 +363,9 @@ function StepSession({
       </Field>
 
       {amount && (
-        <div className="rounded-2xl bg-card-grad border border-gold/25 p-5 text-center">
-          <p className="text-xs tracking-widest uppercase text-lavender/70 mb-1">Total payable</p>
-          <p className="font-serif text-3xl text-gold-grad">₹ {amount.toLocaleString("en-IN")}</p>
+        <div className="rounded-2xl bg-gradient-to-br from-cream to-surface border border-sun/40 p-5 text-center shadow-soft">
+          <p className="text-xs tracking-widest uppercase text-inkSoft mb-1">Total payable</p>
+          <p className="font-serif text-3xl text-sun-grad">₹ {amount.toLocaleString("en-IN")}</p>
           <p className="text-xs text-muted mt-2">Continue to pay & confirm your slot</p>
         </div>
       )}
@@ -384,15 +384,15 @@ function StepPayment({
 }) {
   return (
     <div className="step-enter space-y-6">
-      <h2 className="font-serif text-2xl text-cream mb-1">Payment & slot</h2>
+      <h2 className="font-serif text-2xl text-ink mb-1">Payment & slot</h2>
       <p className="text-sm text-muted">Scan the QR, upload proof, and pick your time.</p>
 
-      <div className="rounded-2xl bg-cosmos/50 border border-gold/20 p-5 text-center">
-        <p className="text-xs tracking-widest uppercase text-lavender/70">Pay this amount</p>
-        <p className="font-serif text-4xl text-gold-grad mt-1">
+      <div className="rounded-2xl bg-gradient-to-br from-cream to-surface border border-sun/30 p-5 text-center shadow-soft">
+        <p className="text-xs tracking-widest uppercase text-inkSoft">Pay this amount</p>
+        <p className="font-serif text-4xl text-sun-grad mt-1">
           ₹ {amount ? amount.toLocaleString("en-IN") : "—"}
         </p>
-        <div className="my-5 inline-block p-3 bg-cream rounded-2xl shadow-glow">
+        <div className="my-5 inline-block p-3 bg-surface rounded-2xl shadow-glow border border-sun/20">
           <Image
             src="/payment-qr.png"
             alt="Payment QR code"
@@ -465,15 +465,15 @@ function FileUpload({
       <div
         className={`rounded-2xl border-2 border-dashed p-6 text-center transition-all cursor-pointer ${
           value
-            ? "border-gold/60 bg-gold/5"
-            : "border-muted/30 hover:border-gold/40 hover:bg-cosmos/30"
+            ? "border-sun bg-cream/40"
+            : "border-border hover:border-sun hover:bg-cream/30"
         }`}
       >
         {value ? (
           <div className="flex items-center justify-center gap-3">
-            <span className="text-gold text-2xl">✓</span>
+            <span className="text-sunDeep text-2xl">✓</span>
             <div className="text-left">
-              <p className="text-sm text-cream">{value.name}</p>
+              <p className="text-sm text-ink font-medium">{value.name}</p>
               <p className="text-xs text-muted">
                 {(value.size / 1024 / 1024).toFixed(2)} MB · click to change
               </p>
@@ -481,14 +481,14 @@ function FileUpload({
           </div>
         ) : (
           <div className="space-y-2">
-            <div className="mx-auto w-12 h-12 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-gold">
+            <div className="mx-auto w-12 h-12 rounded-full bg-sun-grad flex items-center justify-center text-ink shadow-soft">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
             </div>
-            <p className="text-sm text-cream">Click to upload screenshot</p>
+            <p className="text-sm text-ink font-medium">Click to upload screenshot</p>
             <p className="text-xs text-muted">PNG, JPG, HEIC up to 10 MB</p>
           </div>
         )}
@@ -507,19 +507,19 @@ function SuccessScreen({
   return (
     <main className="min-h-screen px-4 py-14 max-w-2xl mx-auto">
       <div className="text-center mb-8 step-enter">
-        <div className="inline-flex w-20 h-20 rounded-full bg-gold-grad items-center justify-center mb-5 shadow-glowStrong animate-float">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#1A0B3D" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <div className="inline-flex w-20 h-20 rounded-full bg-sun-grad items-center justify-center mb-5 shadow-glowStrong animate-float">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2B1810" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
-        <h1 className="font-serif text-4xl text-cream mb-2">Booking received ✦</h1>
-        <p className="text-lavender/80">
+        <h1 className="font-serif text-4xl text-ink mb-2">Booking received ✦</h1>
+        <p className="text-inkSoft">
           Thank you, {booking.fullName.split(" ")[0]}. Your consultation is being processed.
         </p>
       </div>
 
       <GlassCard className="step-enter">
-        <h2 className="font-serif text-xl text-gold mb-4">Your booking details</h2>
+        <h2 className="font-serif text-xl text-sunDeep mb-4">Your booking details</h2>
         <dl className="space-y-3 text-sm">
           <Row k="Session" v={`${booking.consultationType} · ${booking.consultationDuration}`} />
           <Row k="Date" v={booking.consultationDate} />
@@ -530,19 +530,19 @@ function SuccessScreen({
         </dl>
       </GlassCard>
 
-      <div className="glass mt-4 p-6 step-enter">
-        <h3 className="font-serif text-lg text-cream mb-3">What happens next</h3>
-        <ol className="space-y-3 text-sm text-lavender/90">
+      <div className="card mt-4 p-6 step-enter">
+        <h3 className="font-serif text-lg text-ink mb-3">What happens next</h3>
+        <ol className="space-y-3 text-sm text-inkSoft">
           <li className="flex gap-3">
-            <span className="text-gold flex-shrink-0">1.</span>
+            <span className="text-sunDeep flex-shrink-0 font-semibold">1.</span>
             <span>We'll verify your payment screenshot within a few hours.</span>
           </li>
           <li className="flex gap-3">
-            <span className="text-gold flex-shrink-0">2.</span>
+            <span className="text-sunDeep flex-shrink-0 font-semibold">2.</span>
             <span>You'll receive a WhatsApp confirmation with the exact slot details.</span>
           </li>
           <li className="flex gap-3">
-            <span className="text-gold flex-shrink-0">3.</span>
+            <span className="text-sunDeep flex-shrink-0 font-semibold">3.</span>
             <span>A confirmation email with your booking summary has been sent to {booking.email}.</span>
           </li>
         </ol>
@@ -559,9 +559,9 @@ function SuccessScreen({
 
 function Row({ k, v }: { k: string; v: string }) {
   return (
-    <div className="flex justify-between gap-4 border-b border-gold/10 pb-3 last:border-0 last:pb-0">
+    <div className="flex justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0">
       <dt className="text-muted">{k}</dt>
-      <dd className="text-cream text-right">{v}</dd>
+      <dd className="text-ink text-right font-medium">{v}</dd>
     </div>
   );
 }

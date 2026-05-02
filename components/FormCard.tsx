@@ -3,7 +3,7 @@
 import { ReactNode } from "react";
 
 export function GlassCard({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`glass shadow-card p-6 sm:p-8 ${className}`}>{children}</div>;
+  return <div className={`card p-6 sm:p-8 ${className}`}>{children}</div>;
 }
 
 export function Field({
@@ -22,9 +22,9 @@ export function Field({
   return (
     <label className="block">
       <div className="flex items-baseline justify-between mb-2">
-        <span className="text-sm font-medium text-cream tracking-wide">
+        <span className="text-sm font-medium text-ink tracking-wide">
           {label}
-          {required && <span className="text-gold ml-1">*</span>}
+          {required && <span className="text-sun ml-1">*</span>}
         </span>
         {hint && <span className="text-xs text-muted">{hint}</span>}
       </div>
@@ -57,9 +57,9 @@ export function ChipGroup<T extends string>({
             className={`chip ${active ? "chip-active" : ""}`}
           >
             <span className="chip-radio-dot" />
-            {opt.icon && <span className="text-gold">{opt.icon}</span>}
+            {opt.icon && <span className="text-sun">{opt.icon}</span>}
             <span className="flex-1 text-left">
-              <span className="block text-cream">{opt.label}</span>
+              <span className="block text-ink font-medium">{opt.label}</span>
               {opt.sub && <span className="block text-xs text-muted mt-0.5">{opt.sub}</span>}
             </span>
           </button>
@@ -88,10 +88,10 @@ export function StepIndicator({
                 <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
                     done
-                      ? "bg-gold text-cosmos"
+                      ? "bg-sun-grad text-ink shadow-soft"
                       : active
-                      ? "bg-gold text-cosmos shadow-glowStrong"
-                      : "bg-cosmos border border-muted/40 text-muted"
+                      ? "bg-sun-grad text-ink shadow-glowStrong"
+                      : "bg-surface border border-border text-muted"
                   }`}
                 >
                   {done ? (
@@ -104,7 +104,7 @@ export function StepIndicator({
                 </div>
                 <span
                   className={`text-[11px] mt-2 hidden sm:block transition-colors ${
-                    active ? "text-gold" : done ? "text-cream/70" : "text-muted"
+                    active ? "text-sunDeep font-medium" : done ? "text-inkSoft" : "text-muted"
                   }`}
                 >
                   {s.label}
@@ -114,7 +114,7 @@ export function StepIndicator({
                 <div className="flex-1 h-px mx-1 mb-5 sm:mb-7">
                   <div
                     className={`h-full transition-colors ${
-                      done ? "bg-gold" : "bg-muted/25"
+                      done ? "bg-sun" : "bg-border"
                     }`}
                   />
                 </div>
@@ -141,7 +141,7 @@ export function BottomBar({
   canForward: boolean;
 }) {
   return (
-    <div className="sticky bottom-0 -mx-4 px-4 pb-4 pt-4 sm:static sm:mx-0 sm:px-0 sm:pb-0 sm:pt-2 backdrop-blur-md sm:backdrop-blur-0 bg-midnight/60 sm:bg-transparent border-t border-gold/10 sm:border-0">
+    <div className="sticky bottom-0 -mx-4 px-4 pb-4 pt-4 sm:static sm:mx-0 sm:px-0 sm:pb-0 sm:pt-2 backdrop-blur-md sm:backdrop-blur-0 bg-canvas/80 sm:bg-transparent border-t border-border sm:border-0">
       <div className="flex items-center justify-between gap-3">
         {back ? (
           <button type="button" onClick={back} className="btn-ghost">
@@ -154,7 +154,7 @@ export function BottomBar({
           type="button"
           onClick={forward}
           disabled={!canForward || submitting}
-          className="btn-gold flex items-center gap-2"
+          className="btn-sun flex items-center gap-2"
         >
           {submitting ? (
             <>
