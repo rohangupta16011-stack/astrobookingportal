@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import {
   GlassCard,
@@ -394,30 +394,181 @@ function StepPayment({
         />
       </Field>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Consultation date" required>
-          <input
-            className="input"
-            type="date"
-            min={today()}
-            value={form.consultationDate}
-            onChange={(e) => set("consultationDate", e.target.value)}
-          />
-        </Field>
-
-        <Field label="Preferred time" required>
-          <input
-            className="input"
-            type="time"
-            value={form.consultationTime}
-            onChange={(e) => set("consultationTime", e.target.value)}
-          />
-        </Field>
-      </div>
+      <SlotPicker
+        date={form.consultationDate}
+        time={form.consultationTime}
+        durationMins={form.consultationDuration === "60 minutes" ? 60 : 30}
+        onDate={(d) => set("consultationDate", d)}
+        onTime={(t) => set("consultationTime", t)}
+      />
 
       <p className="text-xs text-muted text-center">
         We'll confirm your slot on WhatsApp once payment is verified.
       </p>
+    </div>
+  );
+}
+
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_NAMES = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+function toIsoDate(d: Date) {
+  const tz = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - tz).toISOString().slice(0, 10);
+}
+
+function formatSlot(s: string) {
+  const [hh, mm] = s.split(":").map(Number);
+  const ampm = hh >= 12 ? "PM" : "AM";
+  const h12 = hh % 12 === 0 ? 12 : hh % 12;
+  return `${h12}:${String(mm).padStart(2, "0")} ${ampm}`;
+}
+
+function SlotPicker({
+  date,
+  time,
+  durationMins,
+  onDate,
+  onTime,
+}: {
+  date: string;
+  time: string;
+  durationMins: 30 | 60;
+  onDate: (d: string) => void;
+  onTime: (t: string) => void;
+}) {
+  const days = useMemo(() => {
+    const out: Date[] = [];
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      out.push(d);
+    }
+    return out;
+  }, []);
+
+  const slots = useMemo(() => {
+    const out: string[] = [];
+    const startMins = 12 * 60;
+    const endMins = 19 * 60 - durationMins;
+    for (let m = startMins; m <= endMins; m += durationMins) {
+      const h = Math.floor(m / 60);
+      const mm = m % 60;
+      out.push(`${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`);
+    }
+    return out;
+  }, [durationMins]);
+
+  const todayIso = toIsoDate(new Date());
+
+  const isSlotPast = (dateStr: string, slot: string): boolean => {
+    if (dateStr !== todayIso) return false;
+    const [hh, mm] = slot.split(":").map(Number);
+    const slotTime = new Date();
+    slotTime.setHours(hh, mm, 0, 0);
+    return slotTime.getTime() <= Date.now();
+  };
+
+  const dateHasAvailableSlots = (d: Date): boolean => {
+    const ds = toIsoDate(d);
+    return slots.some((s) => !isSlotPast(ds, s));
+  };
+
+  useEffect(() => {
+    if (time && !slots.includes(time)) onTime("");
+  }, [time, slots, onTime]);
+
+  useEffect(() => {
+    if (date && time && isSlotPast(date, time)) onTime("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date, time]);
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="text-sm font-medium text-ink mb-3">
+          Select a date <span className="text-sun">*</span>
+          <span className="text-xs text-muted font-normal ml-2">Next 7 days</span>
+        </p>
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+          {days.map((d) => {
+            const ds = toIsoDate(d);
+            const active = date === ds;
+            const disabled = !dateHasAvailableSlots(d);
+            const isToday = ds === todayIso;
+            return (
+              <button
+                key={ds}
+                type="button"
+                disabled={disabled}
+                onClick={() => {
+                  onDate(ds);
+                  if (time && isSlotPast(ds, time)) onTime("");
+                }}
+                className={`flex-shrink-0 w-[78px] py-3 rounded-2xl border-2 transition-all text-center ${
+                  active
+                    ? "border-sun bg-gradient-to-br from-cream to-surface shadow-soft"
+                    : disabled
+                    ? "border-border bg-surface/50 opacity-40 cursor-not-allowed"
+                    : "border-border bg-surface hover:border-sun hover:bg-cream/40"
+                }`}
+              >
+                <div className="text-[10px] tracking-widest uppercase text-muted">
+                  {isToday ? "Today" : DAY_NAMES[d.getDay()]}
+                </div>
+                <div className={`font-serif text-2xl mt-0.5 ${active ? "text-sun-grad" : "text-ink"}`}>
+                  {d.getDate()}
+                </div>
+                <div className="text-[10px] text-muted mt-0.5">{MONTH_NAMES[d.getMonth()]}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {date && (
+        <div>
+          <p className="text-sm font-medium text-ink mb-3">
+            Select a time <span className="text-sun">*</span>
+            <span className="text-xs text-muted font-normal ml-2">
+              {durationMins} min slots · 12 PM – 7 PM
+            </span>
+          </p>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            {slots.map((s) => {
+              const past = isSlotPast(date, s);
+              const active = time === s;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  disabled={past}
+                  onClick={() => onTime(s)}
+                  className={`px-3 py-2.5 rounded-xl border-2 text-sm transition-all ${
+                    active
+                      ? "border-sun bg-gradient-to-br from-cream to-surface text-ink font-medium shadow-soft"
+                      : past
+                      ? "border-border bg-surface/40 text-muted line-through opacity-50 cursor-not-allowed"
+                      : "border-border bg-surface text-ink hover:border-sun hover:bg-cream/40"
+                  }`}
+                >
+                  {formatSlot(s)}
+                </button>
+              );
+            })}
+          </div>
+          {slots.every((s) => isSlotPast(date, s)) && (
+            <p className="text-xs text-muted mt-3 text-center">
+              No more slots available today. Please choose another date.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
