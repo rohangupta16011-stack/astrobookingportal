@@ -1,60 +1,54 @@
 /**
- * Google Apps Script webhook for the Consultation Booking Form.
+ * Google Apps Script webhook for the Consultation Booking Form (Razorpay version).
+ *
+ * Receives JSON payloads from /api/submit AFTER Razorpay payment succeeds and
+ * the signature is verified server-side. Writes to Google Sheets and emails
+ * both the customer and the owner.
  *
  * Setup:
- *   1. Create a new Google Sheet. Note its spreadsheet ID (the long
- *      string in the URL between /d/ and /edit).
- *   2. Create a Google Drive folder where the payment screenshots
- *      should be saved. Note its folder ID (the part after /folders/
- *      in the URL).
- *   3. Open script.google.com -> New project -> paste this file.
- *   4. Replace SPREADSHEET_ID and DRIVE_FOLDER_ID below.
- *   5. Deploy -> New deployment -> Type "Web app".
- *        - Execute as: Me
- *        - Who has access: Anyone
- *      Copy the Web app URL.
- *   6. In Vercel, set the env var SHEETS_WEBHOOK_URL to that URL.
+ *   1. Open the Apps Script project linked to your Vercel SHEETS_WEBHOOK_URL.
+ *   2. Replace SPREADSHEET_ID below if you want to point to a different sheet.
+ *      The script will create a new tab named SHEET_NAME on first run.
+ *   3. Save and deploy: Deploy -> Manage deployments -> pencil -> New version.
  */
 
 const SPREADSHEET_ID = "1SL1Oi_4rTieE6DOgS6XqJ5UERZ55wc5iJDonTfHl6_4";
-const DRIVE_FOLDER_ID = "1chpbWw5X9bCG5PuTOzpWuOepU1a-f2a9";
 const SHEET_NAME = "Astro Bookings";
 const OWNER_EMAIL = "astroanikita@gmail.com";
 const BUSINESS_NAME = "Astro Anikita";
+
+const COLUMNS = [
+  "Submitted At",
+  "Full Name",
+  "Mobile",
+  "Email",
+  "Date of Birth",
+  "Time of Birth",
+  "Place of Birth",
+  "Gender",
+  "Consultation Type",
+  "Consultation Duration",
+  "Consultation Date",
+  "Consultation Time",
+  "Amount (INR)",
+  "Payment ID",
+  "Order ID",
+  "Payment Status",
+];
 
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
 
-    const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
-    const blob = Utilities.newBlob(
-      Utilities.base64Decode(data.file.data),
-      data.file.mimeType,
-      `${Date.now()}_${data.file.name}`
-    );
-    const driveFile = folder.createFile(blob);
-    driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    const fileUrl = driveFile.getUrl();
-
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     let sheet = ss.getSheetByName(SHEET_NAME);
     if (!sheet) {
       sheet = ss.insertSheet(SHEET_NAME);
-      sheet.appendRow([
-        "Submitted At",
-        "Full Name",
-        "Mobile",
-        "Email",
-        "Date of Birth",
-        "Time of Birth",
-        "Place of Birth",
-        "Gender",
-        "Consultation Type",
-        "Consultation Duration",
-        "Consultation Date",
-        "Consultation Time",
-        "Payment Screenshot",
-      ]);
+      sheet.appendRow(COLUMNS);
+      sheet.getRange(1, 1, 1, COLUMNS.length).setFontWeight("bold");
+    } else if (sheet.getLastRow() === 0) {
+      sheet.appendRow(COLUMNS);
+      sheet.getRange(1, 1, 1, COLUMNS.length).setFontWeight("bold");
     }
 
     sheet.appendRow([
@@ -70,11 +64,14 @@ function doPost(e) {
       data.consultationDuration,
       data.consultationDate,
       data.consultationTime,
-      fileUrl,
+      data.amount,
+      data.paymentId,
+      data.orderId,
+      data.paymentStatus || "Paid",
     ]);
 
     try {
-      sendNotifications(data, fileUrl);
+      sendNotifications(data);
     } catch (mailErr) {
       Logger.log("Email send failed: " + mailErr);
     }
@@ -88,7 +85,9 @@ function doPost(e) {
   }
 }
 
-function sendNotifications(data, fileUrl) {
+function sendNotifications(data) {
+  const formattedAmount = "INR " + Number(data.amount).toLocaleString("en-IN");
+
   const summaryRows = [
     ["Full Name", data.fullName],
     ["Mobile (WhatsApp)", data.mobile],
@@ -101,26 +100,29 @@ function sendNotifications(data, fileUrl) {
     ["Consultation Duration", data.consultationDuration],
     ["Consultation Date", data.consultationDate],
     ["Consultation Time", data.consultationTime],
+    ["Amount Paid", formattedAmount],
+    ["Payment ID", data.paymentId],
   ];
 
   const tableRows = summaryRows
     .map(
       ([k, v]) =>
-        `<tr><td style="padding:6px 12px;border:1px solid #e0e0e0;background:#f7f6fb;font-weight:600;">${k}</td><td style="padding:6px 12px;border:1px solid #e0e0e0;">${escapeHtml(v)}</td></tr>`
+        `<tr><td style="padding:8px 14px;border:1px solid #f0e4c4;background:#fffcf1;font-weight:600;color:#2B1810;">${k}</td><td style="padding:8px 14px;border:1px solid #f0e4c4;color:#2B1810;">${escapeHtml(v)}</td></tr>`
     )
     .join("");
 
   const baseTable = `<table style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px;">${tableRows}</table>`;
 
-  // 1. Email to the submitter (confirmation)
-  const submitterSubject = `${BUSINESS_NAME} - Booking received`;
+  // 1. Confirmation email to the customer
+  const submitterSubject = `${BUSINESS_NAME} - Your booking is confirmed`;
   const submitterHtml = `
-    <div style="font-family:Arial,sans-serif;color:#202124;max-width:600px;">
-      <h2 style="color:#673AB7;">Thank you, ${escapeHtml(data.fullName)}!</h2>
-      <p>We've received your consultation booking. Here is a copy of the details you submitted:</p>
+    <div style="font-family:Arial,sans-serif;color:#2B1810;max-width:600px;">
+      <h2 style="color:#C99000;margin-bottom:8px;">Thank you, ${escapeHtml(data.fullName)} ✦</h2>
+      <p style="font-size:15px;">Your payment has been received and your consultation slot is confirmed.</p>
+      <h3 style="color:#2B1810;margin-top:24px;">Your booking</h3>
       ${baseTable}
-      <p style="margin-top:20px;">We will reach out on your WhatsApp number to confirm the slot.</p>
-      <p style="color:#5F6368;font-size:12px;margin-top:24px;">If anything looks incorrect, just reply to this email.</p>
+      <p style="margin-top:24px;">You will receive the Google Meet link on WhatsApp before your scheduled session.</p>
+      <p style="color:#8A7560;font-size:12px;margin-top:24px;">If anything looks incorrect, just reply to this email.</p>
     </div>
   `;
   if (data.email) {
@@ -132,14 +134,23 @@ function sendNotifications(data, fileUrl) {
     });
   }
 
-  // 2. Email to the owner (admin alert) with screenshot link
-  const ownerSubject = `New booking - ${data.fullName} (${data.consultationType}, ${data.consultationDuration})`;
+  // 2. Owner alert
+  const ownerSubject =
+    "New paid booking - " +
+    data.fullName +
+    " (" +
+    data.consultationType +
+    ", " +
+    data.consultationDuration +
+    ") - " +
+    formattedAmount;
+  const dashboardLink = "https://dashboard.razorpay.com/app/payments/" + encodeURIComponent(data.paymentId);
   const ownerHtml = `
-    <div style="font-family:Arial,sans-serif;color:#202124;max-width:600px;">
-      <h2 style="color:#673AB7;">New consultation booking</h2>
+    <div style="font-family:Arial,sans-serif;color:#2B1810;max-width:600px;">
+      <h2 style="color:#C99000;">New consultation booking received</h2>
       ${baseTable}
-      <p style="margin-top:20px;">
-        <a href="${fileUrl}" style="color:#673AB7;">View payment screenshot</a>
+      <p style="margin-top:24px;">
+        <a href="${dashboardLink}" style="color:#C99000;font-weight:600;">View payment in Razorpay dashboard →</a>
       </p>
     </div>
   `;

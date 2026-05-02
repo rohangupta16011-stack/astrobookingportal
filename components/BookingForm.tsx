@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import Image from "next/image";
 import {
   GlassCard,
   Field,
@@ -21,7 +20,6 @@ type FormState = {
   gender: "Male" | "Female" | "";
   consultationType: "Astrology" | "Numerology" | "Both" | "";
   consultationDuration: "30 minutes" | "60 minutes" | "";
-  paymentScreenshot: File | null;
   consultationDate: string;
   consultationTime: string;
 };
@@ -37,10 +35,27 @@ const initial: FormState = {
   gender: "",
   consultationType: "",
   consultationDuration: "",
-  paymentScreenshot: null,
   consultationDate: "",
   consultationTime: "",
 };
+
+declare global {
+  interface Window {
+    Razorpay: new (options: Record<string, unknown>) => { open: () => void };
+  }
+}
+
+async function loadRazorpay(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  if (window.Razorpay) return true;
+  return new Promise((resolve) => {
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.body.appendChild(s);
+  });
+}
 
 const STEPS = [
   { label: "About you" },
@@ -101,11 +116,7 @@ export default function BookingForm() {
       return !!form.consultationType && !!form.consultationDuration;
     }
     if (s === 3) {
-      return (
-        !!form.paymentScreenshot &&
-        !!form.consultationDate &&
-        !!form.consultationTime
-      );
+      return !!form.consultationDate && !!form.consultationTime;
     }
     return false;
   };
@@ -127,44 +138,118 @@ export default function BookingForm() {
     setStep((s) => Math.max(s - 1, 0));
   };
 
+  const formatTime = (t: string) => {
+    if (!t) return "";
+    const [hh, mm] = t.split(":");
+    const h = parseInt(hh, 10);
+    const ampm = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${String(h12).padStart(2, "0")}:${mm} ${ampm}`;
+  };
+
   const submit = async () => {
     if (!stepValid(3)) {
-      setError("Please complete all required fields.");
+      setError("Please pick a date and time before continuing.");
+      return;
+    }
+    if (!amount) {
+      setError("Please pick a duration first.");
       return;
     }
     setSubmitting(true);
     setError(null);
-    try {
-      const fd = new FormData();
-      const formatTime = (t: string) => {
-        if (!t) return "";
-        const [hh, mm] = t.split(":");
-        const h = parseInt(hh, 10);
-        const ampm = h >= 12 ? "PM" : "AM";
-        const h12 = h % 12 === 0 ? 12 : h % 12;
-        return `${String(h12).padStart(2, "0")}:${mm} ${ampm}`;
-      };
-      fd.append("fullName", form.fullName);
-      fd.append("mobile", `${form.countryCode} ${form.mobile.replace(/\D/g, "")}`);
-      fd.append("email", form.email);
-      fd.append("dob", form.dob);
-      fd.append("timeOfBirth", formatTime(form.timeOfBirth));
-      fd.append("placeOfBirth", form.placeOfBirth);
-      fd.append("gender", form.gender);
-      fd.append("consultationType", form.consultationType);
-      fd.append("consultationDuration", form.consultationDuration);
-      fd.append("consultationDate", form.consultationDate);
-      fd.append("consultationTime", formatTime(form.consultationTime));
-      fd.append("paymentScreenshot", form.paymentScreenshot!);
 
-      const res = await fetch("/api/submit", { method: "POST", body: fd });
-      if (!res.ok) {
-        const t = await res.text();
-        throw new Error(t || "Submission failed");
+    try {
+      const ready = await loadRazorpay();
+      if (!ready) throw new Error("Could not load payment gateway. Check your connection.");
+
+      const fullMobile = `${form.countryCode} ${form.mobile.replace(/\D/g, "")}`;
+
+      const orderRes = await fetch("/api/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          duration: form.consultationDuration,
+          fullName: form.fullName,
+          email: form.email,
+          mobile: fullMobile,
+        }),
+      });
+      if (!orderRes.ok) {
+        const t = await orderRes.text();
+        throw new Error(t || "Failed to create payment order.");
       }
-      setSubmitted(form);
-      setForm(initial);
-      setStep(0);
+      const order = (await orderRes.json()) as {
+        orderId: string;
+        amount: number;
+        currency: string;
+        keyId: string;
+      };
+
+      await new Promise<void>((resolve, reject) => {
+        const rp = new window.Razorpay({
+          key: order.keyId,
+          amount: order.amount,
+          currency: order.currency,
+          order_id: order.orderId,
+          name: "Astro Anikita",
+          description: `${form.consultationType} · ${form.consultationDuration}`,
+          image: "/anikita.jpg",
+          theme: { color: "#F5B700" },
+          prefill: {
+            name: form.fullName,
+            email: form.email,
+            contact: fullMobile,
+          },
+          notes: {
+            consultationType: form.consultationType,
+            consultationDuration: form.consultationDuration,
+          },
+          modal: {
+            ondismiss: () => reject(new Error("Payment cancelled.")),
+          },
+          handler: async (response: {
+            razorpay_order_id: string;
+            razorpay_payment_id: string;
+            razorpay_signature: string;
+          }) => {
+            try {
+              const submitRes = await fetch("/api/submit", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  fullName: form.fullName,
+                  mobile: fullMobile,
+                  email: form.email,
+                  dob: form.dob,
+                  timeOfBirth: formatTime(form.timeOfBirth),
+                  placeOfBirth: form.placeOfBirth,
+                  gender: form.gender,
+                  consultationType: form.consultationType,
+                  consultationDuration: form.consultationDuration,
+                  consultationDate: form.consultationDate,
+                  consultationTime: formatTime(form.consultationTime),
+                  amount,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                }),
+              });
+              if (!submitRes.ok) {
+                const t = await submitRes.text();
+                throw new Error(t || "Submission failed after payment.");
+              }
+              setSubmitted(form);
+              setForm(initial);
+              setStep(0);
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          },
+        });
+        rp.open();
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -368,32 +453,18 @@ function StepPayment({
 }) {
   return (
     <div className="step-enter space-y-6">
-      <h2 className="font-serif text-2xl text-ink mb-1">Payment & slot</h2>
-      <p className="text-sm text-muted">Scan the QR, upload proof, and pick your time.</p>
+      <h2 className="font-serif text-2xl text-ink mb-1">Pick your slot</h2>
+      <p className="text-sm text-muted">Choose a date and time, then confirm to pay securely.</p>
 
-      <div className="rounded-2xl bg-gradient-to-br from-cream to-surface border border-sun/30 p-5 text-center shadow-soft">
-        <p className="text-xs tracking-widest uppercase text-inkSoft">Pay this amount</p>
+      <div className="rounded-2xl bg-gradient-to-br from-cream to-surface border border-sun/40 p-5 text-center shadow-soft">
+        <p className="text-xs tracking-widest uppercase text-inkSoft">Total payable</p>
         <p className="font-serif text-4xl text-sun-grad mt-1">
           ₹ {amount ? amount.toLocaleString("en-IN") : "—"}
         </p>
-        <div className="my-5 inline-block p-3 bg-surface rounded-2xl shadow-glow border border-sun/20">
-          <Image
-            src="/payment-qr.png"
-            alt="Payment QR code"
-            width={240}
-            height={240}
-            className="rounded-lg"
-          />
-        </div>
-        <p className="text-xs text-muted">Scan with any UPI app · Pay the exact amount</p>
+        <p className="text-xs text-muted mt-2">
+          {form.consultationType} · {form.consultationDuration}
+        </p>
       </div>
-
-      <Field label="Payment screenshot" required hint="Image · max 10 MB">
-        <FileUpload
-          value={form.paymentScreenshot}
-          onChange={(f) => set("paymentScreenshot", f)}
-        />
-      </Field>
 
       <SlotPicker
         date={form.consultationDate}
@@ -403,9 +474,18 @@ function StepPayment({
         onTime={(t) => set("consultationTime", t)}
       />
 
-      <p className="text-xs text-muted text-center">
-        We'll confirm your slot on WhatsApp once payment is verified.
-      </p>
+      <div className="rounded-2xl border border-border bg-surface/60 p-4 flex items-start gap-3">
+        <div className="w-9 h-9 rounded-full bg-sun-grad flex items-center justify-center text-ink shrink-0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </div>
+        <div className="text-xs text-inkSoft leading-relaxed">
+          <p className="text-ink font-medium mb-0.5">Secure payment via Razorpay</p>
+          UPI, cards, netbanking, and wallets accepted. Your slot is confirmed instantly on successful payment.
+        </div>
+      </div>
     </div>
   );
 }
@@ -643,63 +723,6 @@ function SlotPicker({
   );
 }
 
-function FileUpload({
-  value,
-  onChange,
-}: {
-  value: File | null;
-  onChange: (f: File | null) => void;
-}) {
-  return (
-    <label className="block">
-      <input
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const f = e.target.files?.[0] ?? null;
-          if (f && f.size > 10 * 1024 * 1024) {
-            alert("File exceeds 10 MB.");
-            return;
-          }
-          onChange(f);
-        }}
-      />
-      <div
-        className={`rounded-2xl border-2 border-dashed p-6 text-center transition-all cursor-pointer ${
-          value
-            ? "border-sun bg-cream/40"
-            : "border-border hover:border-sun hover:bg-cream/30"
-        }`}
-      >
-        {value ? (
-          <div className="flex items-center justify-center gap-3">
-            <span className="text-sunDeep text-2xl">✓</span>
-            <div className="text-left">
-              <p className="text-sm text-ink font-medium">{value.name}</p>
-              <p className="text-xs text-muted">
-                {(value.size / 1024 / 1024).toFixed(2)} MB · click to change
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <div className="mx-auto w-12 h-12 rounded-full bg-sun-grad flex items-center justify-center text-ink shadow-soft">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-            </div>
-            <p className="text-sm text-ink font-medium">Click to upload screenshot</p>
-            <p className="text-xs text-muted">PNG, JPG, HEIC up to 10 MB</p>
-          </div>
-        )}
-      </div>
-    </label>
-  );
-}
-
 function SuccessScreen({
   booking,
   onAgain,
@@ -738,15 +761,15 @@ function SuccessScreen({
         <ol className="space-y-3 text-sm text-inkSoft">
           <li className="flex gap-3">
             <span className="text-sunDeep flex-shrink-0 font-semibold">1.</span>
-            <span>We'll verify your payment screenshot within a few hours.</span>
+            <span>Your payment is confirmed and your slot is locked in.</span>
           </li>
           <li className="flex gap-3">
             <span className="text-sunDeep flex-shrink-0 font-semibold">2.</span>
-            <span>You'll receive a WhatsApp confirmation with the exact slot details.</span>
+            <span>A confirmation email with your booking summary has been sent to {booking.email}.</span>
           </li>
           <li className="flex gap-3">
             <span className="text-sunDeep flex-shrink-0 font-semibold">3.</span>
-            <span>A confirmation email with your booking summary has been sent to {booking.email}.</span>
+            <span>You'll receive a WhatsApp message with the Google Meet link before your session.</span>
           </li>
         </ol>
       </div>

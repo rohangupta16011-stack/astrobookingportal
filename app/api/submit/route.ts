@@ -1,48 +1,95 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
+type Payload = {
+  fullName: string;
+  mobile: string;
+  email: string;
+  dob: string;
+  timeOfBirth: string;
+  placeOfBirth: string;
+  gender: string;
+  consultationType: string;
+  consultationDuration: string;
+  consultationDate: string;
+  consultationTime: string;
+  amount: number;
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+};
+
+function verifySignature(orderId: string, paymentId: string, signature: string, secret: string) {
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(`${orderId}|${paymentId}`)
+    .digest("hex");
+  return expected === signature;
+}
+
 export async function POST(req: NextRequest) {
   const webhookUrl = process.env.SHEETS_WEBHOOK_URL;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
   if (!webhookUrl) {
     return NextResponse.json(
       { error: "SHEETS_WEBHOOK_URL is not configured." },
       { status: 500 }
     );
   }
-
-  const incoming = await req.formData();
-  const file = incoming.get("paymentScreenshot");
-
-  if (!(file instanceof File)) {
+  if (!keySecret) {
     return NextResponse.json(
-      { error: "Missing payment screenshot." },
+      { error: "Razorpay credentials not configured." },
+      { status: 500 }
+    );
+  }
+
+  let body: Payload;
+  try {
+    body = (await req.json()) as Payload;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
+  }
+
+  if (!body.razorpay_order_id || !body.razorpay_payment_id || !body.razorpay_signature) {
+    return NextResponse.json(
+      { error: "Missing payment confirmation." },
       { status: 400 }
     );
   }
 
-  const arrayBuf = await file.arrayBuffer();
-  const base64 = Buffer.from(arrayBuf).toString("base64");
+  const valid = verifySignature(
+    body.razorpay_order_id,
+    body.razorpay_payment_id,
+    body.razorpay_signature,
+    keySecret
+  );
+  if (!valid) {
+    return NextResponse.json(
+      { error: "Payment signature verification failed." },
+      { status: 400 }
+    );
+  }
 
   const payload = {
-    fullName: String(incoming.get("fullName") ?? ""),
-    mobile: String(incoming.get("mobile") ?? ""),
-    email: String(incoming.get("email") ?? ""),
-    dob: String(incoming.get("dob") ?? ""),
-    timeOfBirth: String(incoming.get("timeOfBirth") ?? ""),
-    placeOfBirth: String(incoming.get("placeOfBirth") ?? ""),
-    gender: String(incoming.get("gender") ?? ""),
-    consultationType: String(incoming.get("consultationType") ?? ""),
-    consultationDuration: String(incoming.get("consultationDuration") ?? ""),
-    consultationDate: String(incoming.get("consultationDate") ?? ""),
-    consultationTime: String(incoming.get("consultationTime") ?? ""),
+    fullName: body.fullName,
+    mobile: body.mobile,
+    email: body.email,
+    dob: body.dob,
+    timeOfBirth: body.timeOfBirth,
+    placeOfBirth: body.placeOfBirth,
+    gender: body.gender,
+    consultationType: body.consultationType,
+    consultationDuration: body.consultationDuration,
+    consultationDate: body.consultationDate,
+    consultationTime: body.consultationTime,
+    amount: body.amount,
+    paymentId: body.razorpay_payment_id,
+    orderId: body.razorpay_order_id,
+    paymentStatus: "Paid",
     submittedAt: new Date().toISOString(),
-    file: {
-      name: file.name,
-      mimeType: file.type || "image/jpeg",
-      data: base64,
-    },
   };
 
   const upstream = await fetch(webhookUrl, {
