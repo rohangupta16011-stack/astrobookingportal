@@ -15,8 +15,36 @@ const sans = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Astro Anikita — Consultation Booking",
-  description: "Book your astrology or numerology consultation.",
+  metadataBase: new URL("https://astroanikita.in"),
+  title: "Astro Anikita — Vedic Astrology & Numerology Consultations",
+  description:
+    "Trusted Vedic astrology and numerology consultations with Anikita. Personal readings rooted in classical Jyotish — guiding you through career, relationships, and life's most pressing questions.",
+  keywords: [
+    "astrology",
+    "numerology",
+    "Vedic astrology",
+    "kundli",
+    "online consultation",
+    "Astro Anikita",
+  ],
+  openGraph: {
+    title: "Astro Anikita — Vedic Astrology & Numerology Consultations",
+    description:
+      "Personal Vedic astrology and numerology consultations rooted in classical tradition.",
+    url: "https://astroanikita.in",
+    siteName: "Astro Anikita",
+    images: [{ url: "/anikita.jpg", width: 1200, height: 1500, alt: "Anikita" }],
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Astro Anikita — Vedic Astrology & Numerology Consultations",
+    description:
+      "Personal Vedic astrology and numerology consultations rooted in classical tradition.",
+    images: ["/anikita.jpg"],
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
