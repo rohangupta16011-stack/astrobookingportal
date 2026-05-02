@@ -255,7 +255,7 @@ export function Services() {
             <p className="font-serif text-2xl text-ink">
               30 min · <span className="text-sun-grad">₹ 1,600</span>
               <span className="text-muted mx-3">/</span>
-              60 min · <span className="text-sun-grad">₹ 3,000</span>
+              60 min · <span className="text-sun-grad">₹ 3,200</span>
             </p>
           </div>
           <a href="#book" className="btn-sun whitespace-nowrap">Book Now</a>
