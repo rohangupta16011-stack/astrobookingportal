@@ -211,7 +211,11 @@ export default function Page() {
       />
 
       <footer className="mt-10 text-center text-xs text-muted">
-        Need help? WhatsApp us — your details are kept private.
+        Need help? Email us at{" "}
+        <a href="mailto:astroanikita@gmail.com" className="text-sunDeep hover:underline">
+          astroanikita@gmail.com
+        </a>{" "}
+        — your details are kept private.
       </footer>
     </main>
   );
