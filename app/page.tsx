@@ -49,7 +49,7 @@ const STEPS = [
 
 const PRICES: Record<string, number> = {
   "30 minutes": 1600,
-  "60 minutes": 2500,
+  "60 minutes": 3000,
 };
 
 const today = () => {
@@ -357,7 +357,7 @@ function StepSession({
           onChange={(v) => set("consultationDuration", v)}
           options={[
             { value: "30 minutes", label: "30 minutes", sub: "Rs. 1,600" },
-            { value: "60 minutes", label: "60 minutes", sub: "Rs. 2,500" },
+            { value: "60 minutes", label: "60 minutes", sub: "Rs. 3,000" },
           ]}
         />
       </Field>
