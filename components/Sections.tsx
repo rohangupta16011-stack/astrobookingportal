@@ -151,7 +151,7 @@ export function Hero() {
             <div className="absolute -inset-4 bg-sun-grad rounded-[40px] opacity-20 blur-2xl" />
             <div className="relative w-full h-full rounded-[32px] overflow-hidden border-4 border-surface shadow-card">
               <Image
-                src="/anikita.jpg"
+                src="/Anikita_up.jpg"
                 alt="Anikita — Vedic Astrologer & Numerologist"
                 fill
                 className="object-cover"
@@ -274,7 +274,7 @@ export function About() {
             <div className="absolute inset-0 bg-sun-grad rounded-[28px] rotate-3 opacity-25 blur-xl" />
             <div className="relative w-full h-full rounded-[28px] overflow-hidden border-4 border-surface shadow-card">
               <Image
-                src="/anikita.jpg"
+                src="/Anikita_down.jpg"
                 alt="Anikita"
                 fill
                 className="object-cover"
