@@ -137,7 +137,7 @@ export function Hero() {
             </a>
           </div>
 
-          <div className="flex items-center gap-6 mt-10 pt-8 border-t border-border">
+          <div className="flex items-center gap-3 sm:gap-6 mt-10 pt-8 border-t border-border min-w-0">
             <Stat n="5+" label="Years experience" />
             <div className="w-px h-10 bg-border" />
             <Stat n="500+" label="Consultations" />
