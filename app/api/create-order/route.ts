@@ -4,8 +4,8 @@ import Razorpay from "razorpay";
 export const runtime = "nodejs";
 
 const PRICES: Record<string, number> = {
-  "30 minutes": 1600,
-  "60 minutes": 3200,
+  "30 minutes": 1640,
+  "60 minutes": 3280,
 };
 
 export async function POST(req: NextRequest) {
